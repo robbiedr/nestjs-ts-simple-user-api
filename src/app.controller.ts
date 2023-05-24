@@ -1,5 +1,7 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Res } from '@nestjs/common';
 import { AppService } from './app.service';
+import { Response } from 'express';
+import { ApiTags } from '@nestjs/swagger';
 
 @Controller()
 export class AppController {
@@ -8,5 +10,11 @@ export class AppController {
   @Get()
   getHello(): string {
     return this.appService.getHello();
+  }
+
+  @Get('health')
+  @ApiTags('Health Check')
+  getHealth(@Res() res: Response): void {
+    res.status(200).json({ message: 'OK' });
   }
 }
