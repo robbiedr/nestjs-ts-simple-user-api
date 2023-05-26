@@ -1,8 +1,18 @@
-import { Controller, Post, Body, Query, Get } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Query,
+  Get,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserRegistrationDto } from './user-registration.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { UserLoginDto } from './user-login.dto';
+import { UserChangePasswordDto } from './user-change-password.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('users')
 export class UserController {
@@ -45,6 +55,29 @@ export class UserController {
       return { bearerToken };
     } catch (error) {
       return { error: error.message };
+    }
+  }
+
+  @Post('change-password')
+  @ApiTags('Users')
+  @UseGuards(JwtAuthGuard) // Apply JwtAuthGuard to protect the endpoint
+  @ApiBearerAuth() // Add this decorator to require bearer token in Swagger
+  async changePassword(
+    @Body() changePasswordData: UserChangePasswordDto,
+    @Request() request: any, // Add the `@Request()` decorator
+  ): Promise<{
+    status: boolean;
+    message?: string;
+    error?: string;
+  }> {
+    try {
+      changePasswordData.userId = request.user.userId; // Access the `userId` from the request object
+      const { message } = await this.userService.changePassword(
+        changePasswordData,
+      );
+      return { status: true, message };
+    } catch (error) {
+      return { status: false, error: error.message };
     }
   }
 }

@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
 import { UserLoginDto } from './user-login.dto';
 import * as bcrypt from 'bcryptjs';
+import { UserChangePasswordDto } from './user-change-password.dto';
 
 @Injectable()
 export class UserService {
@@ -154,5 +155,45 @@ export class UserService {
     );
 
     return { bearerToken };
+  }
+
+  async changePassword(
+    changePasswordData: UserChangePasswordDto,
+  ): Promise<{ message: string }> {
+    const { currentPassword, newPassword, userId } = changePasswordData;
+    let user;
+    try {
+      // Check if the current password matches the user's password
+      user = await this.findByUserId(userId);
+    } catch (DBError) {
+      throw new Error(DBError.message);
+    }
+
+    if (!user || !bcrypt.compareSync(currentPassword, user.password)) {
+      throw new HttpException(
+        'Invalid current password',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    if (currentPassword === newPassword) {
+      throw new HttpException('Invalid new password', HttpStatus.BAD_REQUEST);
+    }
+
+    try {
+      // Update the user's password with the new one
+      user.password = bcrypt.hashSync(newPassword, bcrypt.genSaltSync(10));
+      await this.userRepository.save(user);
+    } catch (DBError) {
+      throw new Error(DBError.message);
+    }
+
+    return {
+      message: 'Password changed successfully',
+    };
+  }
+
+  async findByUserId(id: string): Promise<User> {
+    return this.userRepository.findOne({ where: { id } });
   }
 }
