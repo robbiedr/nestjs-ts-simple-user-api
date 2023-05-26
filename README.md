@@ -103,7 +103,7 @@ Follow the steps below to get started:
    - Open MailDev browser (refer to step #8), then activate account.
    - Login the user account
    - Change password then re-login account
-   - Retrieve user details and users list
+   - Retrieve user profile
 
 8. MailDev:
    The application uses MailDev as a mock email server for sending emails. You can access the MailDev web interface by opening your web browser and navigating to http://localhost:1080. Emails sent by the application will be captured and displayed in the MailDev interface.
