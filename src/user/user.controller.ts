@@ -1,4 +1,4 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Query, Get } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserRegistrationDto } from './user-registration.dto';
 import { ApiTags } from '@nestjs/swagger';
@@ -15,6 +15,22 @@ export class UserController {
       return { user };
     } catch (error) {
       return { error: error.message };
+    }
+  }
+
+  @Get('activate')
+  @ApiTags('Users')
+  async activateUser(@Query('token') token: string): Promise<{
+    success: boolean;
+    message?: string;
+    email?: string;
+    error?: string;
+  }> {
+    try {
+      const { message, email } = await this.userService.activateUser(token);
+      return { success: true, message, email };
+    } catch (error) {
+      return { success: false, error: error.message };
     }
   }
 }
