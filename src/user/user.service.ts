@@ -6,6 +6,8 @@ import { UserRegistrationDto } from './user-registration.dto';
 import { EmailService } from '../shared/email.service';
 import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
+import { UserLoginDto } from './user-login.dto';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class UserService {
@@ -30,9 +32,15 @@ export class UserService {
       throw new Error('Email already exists');
     }
 
+    // Hash the password
+    const hashedPassword = bcrypt.hashSync(
+      userData.password,
+      bcrypt.genSaltSync(10),
+    );
+
     const user = new User();
     user.email = userData.email;
-    user.password = userData.password;
+    user.password = hashedPassword;
     user.firstName = userData.firstName;
     user.lastName = userData.lastName;
     user.isActive = false;
@@ -110,5 +118,41 @@ export class UserService {
       message: 'User account activated successfully',
       email: user.email,
     };
+  }
+
+  async loginUser(loginData: UserLoginDto): Promise<{ bearerToken: string }> {
+    const user = await this.findByEmail(loginData.email);
+
+    if (!user) {
+      throw new HttpException(
+        'Invalid email or password',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    const isPasswordValid = await bcrypt.compare(
+      loginData.password,
+      user.password,
+    );
+
+    if (!isPasswordValid) {
+      throw new HttpException(
+        'Invalid email or password',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    if (!user.isActive) {
+      throw new HttpException('Inactive account', HttpStatus.UNAUTHORIZED);
+    }
+
+    delete user.password;
+    const bearerToken = jwt.sign(
+      { ...user },
+      this.configService.get<string>('TOKEN_SECRET_KEY'),
+      { expiresIn: '1h' },
+    );
+
+    return { bearerToken };
   }
 }

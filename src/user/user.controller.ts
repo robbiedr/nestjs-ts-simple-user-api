@@ -2,6 +2,7 @@ import { Controller, Post, Body, Query, Get } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserRegistrationDto } from './user-registration.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { UserLoginDto } from './user-login.dto';
 
 @Controller('users')
 export class UserController {
@@ -31,6 +32,19 @@ export class UserController {
       return { success: true, message, email };
     } catch (error) {
       return { success: false, error: error.message };
+    }
+  }
+
+  @Post('login')
+  @ApiTags('Users')
+  async login(
+    @Body() loginData: UserLoginDto,
+  ): Promise<{ bearerToken?: string; error?: string }> {
+    try {
+      const { bearerToken } = await this.userService.loginUser(loginData);
+      return { bearerToken };
+    } catch (error) {
+      return { error: error.message };
     }
   }
 }
