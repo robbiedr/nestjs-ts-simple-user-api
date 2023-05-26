@@ -13,6 +13,7 @@ import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { UserLoginDto } from './user-login.dto';
 import { UserChangePasswordDto } from './user-change-password.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { UserProfileDto } from './user-profile.dto';
 
 @Controller('users')
 export class UserController {
@@ -78,6 +79,20 @@ export class UserController {
       return { status: true, message };
     } catch (error) {
       return { status: false, error: error.message };
+    }
+  }
+
+  @Get('/profile')
+  @ApiTags('Users')
+  @UseGuards(JwtAuthGuard) // Apply JwtAuthGuard to protect the endpoint
+  @ApiBearerAuth()
+  async getUserProfile(@Request() request: any): Promise<UserProfileDto> {
+    try {
+      const userId = request.user.userId; // Access the `userId` from the request object
+      const user = await this.userService.getUserProfile(userId);
+      return user;
+    } catch (error) {
+      return { error: error.message };
     }
   }
 }

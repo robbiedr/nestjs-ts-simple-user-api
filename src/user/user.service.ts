@@ -9,6 +9,7 @@ import * as jwt from 'jsonwebtoken';
 import { UserLoginDto } from './user-login.dto';
 import * as bcrypt from 'bcryptjs';
 import { UserChangePasswordDto } from './user-change-password.dto';
+import { UserProfileDto } from './user-profile.dto';
 
 @Injectable()
 export class UserService {
@@ -193,7 +194,23 @@ export class UserService {
     };
   }
 
-  async findByUserId(id: string): Promise<User> {
-    return this.userRepository.findOne({ where: { id } });
+  async findByUserId(id: string, select?: (keyof User)[]): Promise<User> {
+    return this.userRepository.findOne({ where: { id }, select });
+  }
+
+  async getUserProfile(userId: string): Promise<UserProfileDto> {
+    let user;
+    try {
+      user = await this.findByUserId(userId, [
+        'id',
+        'firstName',
+        'lastName',
+        'email',
+      ]);
+
+      return user;
+    } catch (DBError) {
+      throw new Error(DBError.message);
+    }
   }
 }
