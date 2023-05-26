@@ -12,10 +12,25 @@ async function bootstrap() {
     .setTitle('Simple User Mgmt NestJS Typescript')
     .setDescription('Simple user management API built with NestJS Typescript')
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, options);
-  SwaggerModule.setup('api-docs', app, document);
+
+  const swaggerOptions = {
+    swaggerOptions: {
+      securityDefinitions: {
+        bearerAuth: {
+          type: 'apiKey',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        },
+      },
+    },
+    security: [{ bearerAuth: [] }],
+  };
+
+  SwaggerModule.setup('api-docs', app, document, swaggerOptions);
 
   await app.listen(process.env.APP_PORT);
 }
