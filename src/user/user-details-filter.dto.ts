@@ -6,4 +6,7 @@ export class UserDetailsFilterDto {
 
   @ApiProperty({ example: 10 })
   limit: number;
+
+  @ApiProperty({ example: 'john' })
+  search?: string;
 }
