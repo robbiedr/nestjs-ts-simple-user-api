@@ -3,4 +3,5 @@ export class UserDetailsDto {
   firstName: string;
   lastName: string;
   email: string;
+  createdAt: Date;
 }
