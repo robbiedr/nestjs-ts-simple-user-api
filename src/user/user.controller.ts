@@ -14,6 +14,8 @@ import { UserLoginDto } from './user-login.dto';
 import { UserChangePasswordDto } from './user-change-password.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UserProfileDto } from './user-profile.dto';
+import { UserDetailsDto } from './user-details.dto';
+import { UserDetailsFilterDto } from './user-details-filter.dto';
 
 @Controller('users')
 export class UserController {
@@ -82,7 +84,7 @@ export class UserController {
     }
   }
 
-  @Get('/profile')
+  @Get('profile')
   @ApiTags('Users')
   @UseGuards(JwtAuthGuard) // Apply JwtAuthGuard to protect the endpoint
   @ApiBearerAuth()
@@ -91,6 +93,20 @@ export class UserController {
       const userId = request.user.userId; // Access the `userId` from the request object
       const user = await this.userService.getUserProfile(userId);
       return user;
+    } catch (error) {
+      return { error: error.message };
+    }
+  }
+
+  @Get('')
+  @ApiTags('Users')
+  async getUsers(
+    @Query() query: UserDetailsFilterDto,
+  ): Promise<UserDetailsDto[] | { error: string }> {
+    try {
+      const { page, limit } = query;
+      const users = await this.userService.getUsers(page, limit);
+      return users;
     } catch (error) {
       return { error: error.message };
     }

@@ -10,6 +10,7 @@ import { UserLoginDto } from './user-login.dto';
 import * as bcrypt from 'bcryptjs';
 import { UserChangePasswordDto } from './user-change-password.dto';
 import { UserProfileDto } from './user-profile.dto';
+import { UserDetailsDto } from './user-details.dto';
 
 @Injectable()
 export class UserService {
@@ -212,5 +213,16 @@ export class UserService {
     } catch (DBError) {
       throw new Error(DBError.message);
     }
+  }
+
+  async getUsers(page: number, limit: number): Promise<UserDetailsDto[]> {
+    const skip = (page - 1) * limit;
+    const users = await this.userRepository.find({
+      skip,
+      take: limit,
+      select: ['id', 'firstName', 'lastName', 'email'], // Adjust the select fields as per your needs,
+      order: { createdAt: 'DESC' },
+    });
+    return users;
   }
 }
