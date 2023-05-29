@@ -219,12 +219,19 @@ export class UserService {
     page: number,
     limit: number,
     search?: string,
+    sort?: 'createdAt' | 'firstName' | 'lastName' | 'email',
+    sortOrder?: 'ASC' | 'DESC',
   ): Promise<UserDetailsDto[]> {
     const skip = (page - 1) * limit;
     const queryBuilder = this.userRepository
       .createQueryBuilder('user')
-      .select(['user.id', 'user.firstName', 'user.lastName', 'user.email'])
-      .orderBy('user.createdAt', 'DESC')
+      .select([
+        'user.id',
+        'user.firstName',
+        'user.lastName',
+        'user.email',
+        'user.createdAt',
+      ])
       .skip(skip)
       .take(limit);
 
@@ -233,6 +240,12 @@ export class UserService {
         'user.firstName ILIKE :search OR user.lastName ILIKE :search OR user.email ILIKE :search',
         { search: `%${search}%` },
       );
+    }
+
+    if (sort && sortOrder) {
+      queryBuilder.orderBy(`user.${sort}`, sortOrder);
+    } else {
+      queryBuilder.orderBy('user.createdAt', 'DESC');
     }
 
     const users = await queryBuilder.getMany();
