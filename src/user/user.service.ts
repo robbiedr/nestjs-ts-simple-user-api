@@ -215,14 +215,27 @@ export class UserService {
     }
   }
 
-  async getUsers(page: number, limit: number): Promise<UserDetailsDto[]> {
+  async getUsers(
+    page: number,
+    limit: number,
+    search?: string,
+  ): Promise<UserDetailsDto[]> {
     const skip = (page - 1) * limit;
-    const users = await this.userRepository.find({
-      skip,
-      take: limit,
-      select: ['id', 'firstName', 'lastName', 'email'], // Adjust the select fields as per your needs,
-      order: { createdAt: 'DESC' },
-    });
+    const queryBuilder = this.userRepository
+      .createQueryBuilder('user')
+      .select(['user.id', 'user.firstName', 'user.lastName', 'user.email'])
+      .orderBy('user.createdAt', 'DESC')
+      .skip(skip)
+      .take(limit);
+
+    if (search) {
+      queryBuilder.where(
+        'user.firstName ILIKE :search OR user.lastName ILIKE :search OR user.email ILIKE :search',
+        { search: `%${search}%` },
+      );
+    }
+
+    const users = await queryBuilder.getMany();
     return users;
   }
 }

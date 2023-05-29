@@ -104,8 +104,8 @@ export class UserController {
     @Query() query: UserDetailsFilterDto,
   ): Promise<UserDetailsDto[] | { error: string }> {
     try {
-      const { page, limit } = query;
-      const users = await this.userService.getUsers(page, limit);
+      const { page, limit, search } = query;
+      const users = await this.userService.getUsers(page, limit, search);
       return users;
     } catch (error) {
       return { error: error.message };
